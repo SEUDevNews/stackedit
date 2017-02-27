@@ -11,7 +11,7 @@ app.engine('html', require('ejs').renderFile);
 app.all('*', function(req, res, next) {
 	if (req.headers.host == 'stackedit.io' && !req.secure && req.headers['x-forwarded-proto'] != 'https') {
 		return res.redirect('https://stackedit.io' + req.url);
-	}
+	};
 	/\.(eot|ttf|woff|svg)$/.test(req.url) && res.header('Access-Control-Allow-Origin', '*');
 	next();
 });
@@ -24,6 +24,10 @@ app.post('/sshPublish', require('./ssh').publish);
 app.post('/picasaImportImg', require('./picasa').importImg);
 app.get('/downloadImport', require('./download').importPublic);
 
+// qiniu
+app.get('/getUploadToken', require('./qiniu').getUpToken);
+// var qiniu =  require('./qiniu');
+// console.dir(qiniu.getUpToken());
 // Serve static resources
 app.use(serveStatic(__dirname + '/../public'));
 
@@ -49,6 +53,11 @@ app.get('/editor', function(req, res) {
 // Serve viewer.html in /viewer
 app.get('/viewer', function(req, res) {
 	res.renderDebug('viewer.html');
+});
+
+
+app.get('/upload', function(req, res) {
+	res.renderDebug('upload_demo.html');
 });
 
 // Error 404

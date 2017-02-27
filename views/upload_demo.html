@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>StackEdit – Editor</title>
+        <link rel="canonical" href="https://stackedit.io/editor">
+        <link rel="icon" href="res-min/img/stackedit-32.ico" type="image/x-icon">
+        <link rel="icon" sizes="192x192" href="res-min/img/logo-highres.png">
+        <link rel="shortcut icon" href="res-min/img/stackedit-32.ico" type="image/x-icon">
+        <link rel="shortcut icon" sizes="192x192" href="res-min/img/logo-highres.png">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="res-min/img/logo-ipad-retina.png">
+        <meta charset="UTF-8">
+        <meta name="description" content="Full-featured, open-source Markdown editor based on PageDown, the Markdown library used by Stack Overflow and the other Stack Exchange sites.">
+        <meta name="author" content="Benoit Schweblin">
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="msvalidate.01" content="5E47EE6F67B069C17E3CDD418351A612">
+
+		<!--webuploader css-->
+		<link rel="stylesheet" href="res/bower-libs/webuploader/webuploader.css">
+    </head>
+
+    <body>
+		<div id="picker" style="display: none"></div>
+
+		<input type="button" value="click pick file" id="pickfile">
+		<input type="button" value="click upload qiniu" id="uploder">
+		<script src="res/bower-libs/jquery/jquery.js"></script>
+		<script src="res/bower-libs/webuploader/webuploader.js"></script>
+		<script>
+
+			$.ajax({
+			    url:'/getUploadToken',
+				success:function (data) {
+					//console.log(data);
+					window.uploader = WebUploader.create({
+
+						// swf文件路径
+						swf: 'res/bower-libs/webuploader/Uploader.swf',
+
+						// 文件接收服务端。
+						server: 'http://up.qiniu.com/',
+
+						pick: '#picker',
+
+						// 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+						resize: false,
+
+						formData: {
+							token: data
+						}
+					});
+
+
+					// 当有文件被添加进队列的时候
+					uploader.on( 'fileQueued', function( file ) {
+						console.log(file.id, file.name, 'enqueued');
+					});
+					uploader.on('uploadSuccess', function (file, response) {
+						console.dir(response);
+					});
+
+				}
+			});
+
+			// window.addEventListener('paste', ... or
+			document.onpaste = function(event){
+				var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+				console.log(JSON.stringify(items)); // will give you the mime types
+				for (index in items) {
+					var item = items[index];
+
+					if (item.kind === 'file') {
+						//console.log(Object.prototype.toString.call(item));
+						var blob = item.getAsFile();
+						var file = new File([blob], ""+(new Date()));
+						uploader.addFiles(file);
+						//var reader = new FileReader();
+						//reader.onload = function(event){
+						//	console.log(event.target.result)}; // data url!
+						//reader.readAsDataURL(blob);
+					}
+				}
+			}
+
+
+			$('#uploder').on('click',function () {
+				uploader.upload();
+			});
+
+			$('#pickfile').on('click',function () {
+			    console.log('pick file');
+				$('#picker input[type=file]').trigger('click');
+			});
+		</script>
+	</body>
+
+</html>

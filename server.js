@@ -32,6 +32,7 @@ else {
 	}
 	var httpServer = http.createServer(app);
 	httpServer.listen(port, null, function() {
+		console.log("=====LOG=====")
 		console.log('HTTP server started: http://localhost:' + port);
 	});
 }

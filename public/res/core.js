@@ -289,6 +289,7 @@ define([
 	// Initialize multiple things and then fire eventMgr.onReady
 	core.onReady = function() {
 		// Add RTL class
+		console.log(settings.editMode);
 		document.body.className += ' ' + settings.editMode;
 
 		if(window.viewerMode === true) {
@@ -326,13 +327,14 @@ define([
 
 		eventMgr.onReady();
 	};
-
+	/*
 	var appId = 'ESTHdCYOi18iLhhO';
 	var monetize = new MonetizeJS({
 		applicationID: appId
 	});
+	*/
 	var $alerts = $();
-
+	/*
 	function isSponsor(payments) {
 		var result = payments && payments.app == appId && (
 			(payments.chargeOption && payments.chargeOption.alias == 'once') ||
@@ -340,12 +342,13 @@ define([
 		eventMgr.isSponsor = result;
 		return result;
 	}
-
+	*/
 	function removeAlerts() {
 		$alerts.remove();
 		$alerts = $();
 	}
 
+	/*
 	function performPayment() {
 		monetize.getPayments({
 			pricingOptions: [
@@ -376,12 +379,13 @@ define([
 			}
 		});
 	}, 3000);
+	*/
 
-	eventMgr.addListener('onOfflineChanged', checkPayment);
+	//eventMgr.addListener('onOfflineChanged', checkPayment);
 
 	// Other initialization that are not prioritary
 	eventMgr.addListener("onReady", function() {
-
+		console.log('on ready')
 		$(document.body).on('shown.bs.modal', '.modal', function() {
 			var $elt = $(this);
 			setTimeout(function() {
@@ -577,7 +581,7 @@ define([
 		}
 
 		$('.modal-header').append('<a class="dialog-header-message" href="http://classeur.io" target="_blank"><i class="icon-megaphone"></i> Try Classeur beta!</a>');
-		checkPayment();
+		//checkPayment();
 	});
 
 	return core;

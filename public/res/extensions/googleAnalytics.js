@@ -16,7 +16,8 @@ define([
     window._gaq = [];
 
     var init = function() {
-        if(isLoaded === false && isOffline === false) {
+        /*
+    	if(isLoaded === false && isOffline === false) {
             var gaUrl = "/ga.js";
             if(location.search.match(/(\?|&)console/)) {
                 gaUrl = "/u/ga_debug.js";
@@ -28,6 +29,7 @@ define([
                 isLoaded = true;
             });
         }
+        */
     };
 
     var lastPageView = 0;
@@ -59,7 +61,7 @@ define([
             'version',
             constants.VERSION
         ]);
-        
+
         // Collect informations about user settings
         _gaq.push([
             '_trackEvent',

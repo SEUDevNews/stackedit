@@ -1,5 +1,6 @@
 // RequireJS configuration
 /*global requirejs */
+console.log("main.js");
 requirejs.config({
 	waitSeconds: 0,
 	packages: [
@@ -233,5 +234,6 @@ require([
 			}, false);
 		}
 	});
+
 
 });
