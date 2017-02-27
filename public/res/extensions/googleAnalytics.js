@@ -16,7 +16,6 @@ define([
     window._gaq = [];
 
     var init = function() {
-        /*
     	if(isLoaded === false && isOffline === false) {
             var gaUrl = "/ga.js";
             if(location.search.match(/(\?|&)console/)) {
@@ -29,7 +28,7 @@ define([
                 isLoaded = true;
             });
         }
-        */
+
     };
 
     var lastPageView = 0;
@@ -46,7 +45,7 @@ define([
     };
 
     googleAnalytics.onReady = function() {
-
+		console.debug('google analytics ready');
         // First configure GA
         _gaq.push([
             '_setAccount',

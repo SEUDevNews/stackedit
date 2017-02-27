@@ -58,7 +58,11 @@ define([
 			'}'
 		].join('\n'),
 		couchdbUrl: constants.COUCHDB_URL,
-		extensionSettings: {}
+		extensionSettings: {
+			googleAnalytics : {
+				enabled : false,
+			}
+		}
 	};
 
 	try {
