@@ -1,50 +1,79 @@
 define([
     "underscore",
+	"jquery",
     "utils",
-    "classes/Provider",
-], function(_, utils, Provider) {
+	"eventMgr",
+	'webuploader',
+	// "core",
+	"css!bower-libs/webuploader/webuploader.css"
+], function(_, $, utils,eventMgr,WebUploader) {
+	var qiniuHelper = {},pagedownEditor;
+	qiniuHelper.base_url = "http://img.spotty.com.cn/";
+	function getUptoken(){
+		$.ajax({
+			url:'/getUploadToken',
+			success:function (data) {
+				//console.log(data);
+				qiniuHelper.uploader = WebUploader.create({
 
-    var bloggerPageProvider = new Provider("bloggerpage", "Blogger Page");
-    bloggerPageProvider.defaultPublishFormat = "html";
-    bloggerPageProvider.publishPreferencesInputIds = [
-        "blogger-url"
-    ];
+					// swf文件路径
+					swf: 'bower-libs/webuploader/Uploader.swf',
 
-	bloggerPageProvider.getPublishLocationLink = function(attributes) {
-		return [
-			'https://www.blogger.com/blogger.g?blogID=',
-			attributes.blogId,
-			'#editor/target=page;pageID=',
-			attributes.pageId
-		].join('');
-	};
+					// 文件接收服务端。
+					server: 'http://up.qiniu.com/',
 
-	bloggerPageProvider.publish = function(publishAttributes, frontMatter, title, content, callback) {
-        var isDraft = frontMatter && frontMatter.published === false;
-        var publishDate = frontMatter && frontMatter.date;
-        googleHelper.uploadBloggerPage(publishAttributes.blogUrl, publishAttributes.blogId, publishAttributes.pageId, isDraft, publishDate, title, content, function(error, blogId, pageId) {
-            if(error) {
-                callback(error);
-                return;
-            }
-            publishAttributes.blogId = blogId;
-            publishAttributes.pageId = pageId;
-            callback();
-        });
-    };
+					// pick: '#picker',
 
-    bloggerPageProvider.newPublishAttributes = function(event) {
-        var publishAttributes = {};
-        var blogUrl = utils.getInputTextValue("#input-publish-blogger-url", event);
-        if(blogUrl !== undefined) {
-            publishAttributes.blogUrl = utils.checkUrl(blogUrl);
-        }
-        publishAttributes.pageId = utils.getInputTextValue("#input-publish-pageid");
-        if(event.isPropagationStopped()) {
-            return undefined;
-        }
-        return publishAttributes;
-    };
+					// 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+					resize: false,
 
-    return bloggerPageProvider;
+					formData: {
+						token: data
+					},
+
+					paste:'.editor-content',
+					auto:true,
+				});
+
+
+				// 当有文件被添加进队列的时候
+				qiniuHelper.uploader.on( 'fileQueued', function( file ) {
+					console.log(file.id, file.name, 'enqueued');
+				});
+				qiniuHelper.uploader.on('uploadSuccess', function (file, response) {
+					//console.dir(response);
+					var img_url = qiniuHelper.base_url + response['hash'];
+					pagedownEditor.uiManager.addImage(img_url);
+					/*
+					core.insertLinkCallback = function(e){
+						console.log('insert link callback');
+						console.dir(e);
+					};
+					core.insertLinkCallback(img_url);
+					*/
+				});
+
+			}
+		})
+	}
+	/*
+	eventMgr.addListener("onMessage", function(d) {
+		console.log(d);
+	});
+	*/
+	eventMgr.addListener("onReady", function(isOfflineParam) {
+		console.log('qiniu helper ready');
+		getUptoken();
+	});
+
+	eventMgr.addListener("onPagedownConfigure",function(editor){
+		//console.debug('qiniu listen editor');
+		//console.dir(editor);
+		pagedownEditor  = editor;
+		//console.dir(pagedownEditor);
+	});
+
+
+
+	return qiniuHelper;
 });

@@ -60,7 +60,7 @@ define([
 		couchdbUrl: constants.COUCHDB_URL,
 		extensionSettings: {
 			googleAnalytics : {
-				enabled : false,
+				enabled : false
 			}
 		}
 	};

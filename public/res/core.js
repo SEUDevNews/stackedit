@@ -16,7 +16,8 @@ define([
 	"text!html/tooltipSettingsTemplate.html",
 	"text!html/tooltipSettingsPdfOptions.html",
 	"storage",
-	'pagedown'
+	'pagedown',
+	"helpers/QiniuHelper",
 ], function($, _, crel, editor, layout, constants, utils, storage, settings, eventMgr, MonetizeJS, bodyEditorHTML, bodyViewerHTML, settingsTemplateTooltipHTML, settingsPdfOptionsTooltipHTML) {
 
 	var core = {};
@@ -240,10 +241,11 @@ define([
 		pagedownEditor = new Markdown.Editor(converter, undefined, {
 			undoManager: editor.undoMgr
 		});
-
+		//console.dir(pagedownEditor);
 		// Custom insert link dialog
 		pagedownEditor.hooks.set("insertLinkDialog", function(callback) {
 			core.insertLinkCallback = callback;
+
 			utils.resetModalInputs();
 			$(".modal-insert-link").modal();
 			return true;
@@ -284,12 +286,14 @@ define([
 		$btnGroupElt = $('.wmd-button-group5');
 		$("#wmd-undo-button").append($('<i class="icon-reply">')).appendTo($btnGroupElt);
 		$("#wmd-redo-button").append($('<i class="icon-forward">')).appendTo($btnGroupElt);
+		//eventMgr.onMessage('finish pagedown editor');
 	};
 
 	// Initialize multiple things and then fire eventMgr.onReady
 	core.onReady = function() {
 		// Add RTL class
-		console.log(settings.editMode);
+		//console.log(core.insertLinkCallback);
+		//console.log(settings.editMode);
 		document.body.className += ' ' + settings.editMode;
 
 		if(window.viewerMode === true) {

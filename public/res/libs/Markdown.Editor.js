@@ -1250,7 +1250,8 @@
 
         var inputBox = panels.input,
             buttons = {}; // buttons.undo, buttons.link, etc. The actual DOM elements.
-
+		// export commandManager
+		// this.commandManager = commandManager;
         makeSpritedButtonRow();
 
         var keyEvent = "keydown";
@@ -1566,7 +1567,34 @@
         this.buttons = buttons;
         this.doClick = doClick;
 
+
+		// custom add image
+		this.addImage = function (imgUrl) {
+			inputBox.focus();
+			var state = new TextareaState(panels);
+			if (!state) {
+				return;
+			}
+
+			var chunks = state.getChunks();
+			var fixupInputArea = function () {
+
+				inputBox.focus();
+
+				if (chunks) {
+					state.setChunks(chunks);
+				}
+
+				state.restore();
+				previewManager.refresh();
+			};
+
+			//command manager doLinkOrImage(chunk, postProcessing, true);
+			commandManager.doImage(chunks, fixupInputArea, imgUrl);
+		};
     }
+
+
 
     function CommandManager(pluginHooks, getString) {
         this.hooks = pluginHooks;
@@ -1836,6 +1864,86 @@
         }
     };
 
+    // markdown增加图片->QiniuHelp.js
+	commandProto.doImage = function (chunk, postProcessing, imagUrl) {
+
+		chunk.trimWhitespace();
+		chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\(.*?\))?/);
+		var isImage = true;
+		var background;
+
+		if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
+
+			chunk.startTag = chunk.startTag.replace(/!?\[/, "");
+			chunk.endTag = "";
+			this.addLinkDef(chunk, null);
+
+		}
+		else {
+
+			// We're moving start and end tag back into the selection, since (as we're in the else block) we're not
+			// *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
+			// link text. linkEnteredCallback takes care of escaping any brackets.
+			chunk.selection = chunk.startTag + chunk.selection + chunk.endTag;
+			chunk.startTag = chunk.endTag = "";
+
+			if (/\n\n/.test(chunk.selection)) {
+				this.addLinkDef(chunk, null);
+				return;
+			}
+			var that = this;
+			// The function to be executed when you enter a link and press OK or Cancel.
+			// Marks up the link and adds the ref.
+			var linkEnteredCallback = function (link) {
+
+				background.parentNode.removeChild(background);
+
+				if (link !== null) {
+					// (                          $1
+					//     [^\\]                  anything that's not a backslash
+					//     (?:\\\\)*              an even number (this includes zero) of backslashes
+					// )
+					// (?=                        followed by
+					//     [[\]]                  an opening or closing bracket
+					// )
+					//
+					// In other words, a non-escaped bracket. These have to be escaped now to make sure they
+					// don't count as the end of the link or similar.
+					// Note that the actual bracket has to be a lookahead, because (in case of to subsequent brackets),
+					// the bracket in one match may be the "not a backslash" character in the next match, so it
+					// should not be consumed by the first match.
+					// The "prepend a space and finally remove it" steps makes sure there is a "not a backslash" at the
+					// start of the string, so this also works if the selection begins with a bracket. We cannot solve
+					// this by anchoring with ^, because in the case that the selection starts with two brackets, this
+					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
+					// the first bracket could then not act as the "not a backslash" for the second.
+					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+
+					/*
+					 var linkDef = " [999]: " + properlyEncoded(link);
+
+					 var num = that.addLinkDef(chunk, linkDef);
+					 */
+					chunk.startTag = isImage ? "![" : "[";
+					//chunk.endTag = "][" + num + "]";
+					chunk.endTag = "](" + properlyEncoded(link) + ")";
+
+					if (!chunk.selection) {
+						if (isImage) {
+							chunk.selection = that.getString("imagedescription");
+						}
+						else {
+							chunk.selection = that.getString("linkdescription");
+						}
+					}
+				}
+				postProcessing();
+			};
+
+			background = ui.createBackground();
+			linkEnteredCallback(imagUrl);
+		}
+	};
     // When making a list, hitting shift-enter will put your cursor on the next line
     // at the current indent level.
     commandProto.doAutoindent = function (chunk, postProcessing) {
